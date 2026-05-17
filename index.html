@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今天有在好好吃饭吗</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Inter:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500&family=Noto+Serif+SC:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="bg-overlay"></div>
+    <div class="container">
+        <header class="header">
+            <div class="brand">MEAL DIARY</div>
+            <div class="top-tags">
+                <span class="top-tag">糊弄</span>
+                <span class="top-tag">健康</span>
+                <span class="top-tag">大餐</span>
+                <span class="top-tag">外卖</span>
+            </div>
+            <div class="user-section">
+                <div class="user-info" id="userInfo" style="display: none;">
+                    <span class="user-name" id="userName">用户</span>
+                    <div class="user-avatar-mini" id="userAvatar">游</div>
+                    <button class="logout-btn" id="logoutBtn" title="退出登录">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                    </button>
+                </div>
+                <button class="login-btn" id="loginBtn">登录</button>
+            </div>
+        </header>
+
+        <section class="quote-section">
+            <p class="quote">"好好吃饭，就是好好生活。"</p>
+            <p class="quote-author">— 今天</p>
+        </section>
+
+        <div class="main-card">
+            <div class="meal-row">
+                <button class="meal-btn active" data-meal="breakfast">早餐</button>
+                <button class="meal-btn" data-meal="lunch">午餐</button>
+                <button class="meal-btn" data-meal="dinner">晚餐</button>
+            </div>
+
+            <div class="tag-row">
+                <button class="tag-btn" data-tag="hudun">糊弄</button>
+                <button class="tag-btn" data-tag="health">健康</button>
+                <button class="tag-btn" data-tag="feast">大餐</button>
+                <button class="tag-btn" data-tag="takeout">外卖</button>
+            </div>
+
+            <div id="food-selection" class="food-selection" style="display: none;">
+                <div class="section-title">今天吃了什么？</div>
+                <div class="food-grid" id="food-grid"></div>
+                <div class="food-custom">
+                    <label class="upload-btn">
+                        <input type="file" id="food-upload" accept="image/*" style="display: none;">
+                        <span class="upload-icon">📷</span>
+                        <span>上传自己的照片</span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="custom-input" class="custom-input" style="display: none;">
+                <div class="section-title">记录一下今天吧</div>
+                <textarea id="custom-text" placeholder="吃了什么？味道怎么样？有什么想记录的..." rows="3"></textarea>
+                <button id="confirm-text" class="confirm-btn">确认记录</button>
+            </div>
+
+            <div id="meal-card" class="card-preview">
+                <div class="preview-date" id="card-date"></div>
+                <div class="preview-icon" id="card-icon">🍽️</div>
+                <div class="preview-text" id="card-text">选择上方标签，记录今日食事</div>
+                <div class="preview-label" id="card-label">待记录</div>
+            </div>
+
+            <button id="save-btn" class="save-btn" disabled>保存卡片</button>
+        </div>
+
+        <section class="bottom-section">
+            <button id="weekly-btn" class="library-btn">
+                <span class="library-icon"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="10" y="10" width="28" height="28" rx="4"/><line x1="10" y1="24" x2="38" y2="24"/><line x1="24" y1="10" x2="24" y2="38"/></svg></span>
+                <span>我的食事库</span>
+                <span class="library-count" id="meal-count">0</span>
+            </button>
+            <button id="admin-btn" class="library-btn admin-btn" style="display: none;">
+                <span class="library-icon"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M24 4L6 12v12c0 11.1 7.7 21.5 18 24 10.3-2.5 18-12.9 18-24V12L24 4z"/></svg></span>
+                <span>管理后台</span>
+            </button>
+        </section>
+    </div>
+
+    <div id="weekly-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>本周食事</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="weekly-grid" id="weekly-grid"></div>
+            <div class="weekly-summary" id="weekly-summary"></div>
+        </div>
+    </div>
+
+    <script src="localstorage.js"></script>
+    <script src="app.js"></script>
+    <script>
+        function updateUserUI() {
+            const user = LocalStorageManager.getUser();
+            const loginBtn = document.getElementById('loginBtn');
+            const userInfo = document.getElementById('userInfo');
+            const userName = document.getElementById('userName');
+            const userAvatar = document.getElementById('userAvatar');
+            const adminBtn = document.getElementById('admin-btn');
+            
+            if (user && LocalStorageManager.isLoggedIn()) {
+                loginBtn.style.display = 'none';
+                userInfo.style.display = 'flex';
+                
+                if (user.isGuest) {
+                    userName.textContent = '游客';
+                    userAvatar.textContent = '游';
+                } else {
+                    userName.textContent = user.displayName || '用户';
+                    userAvatar.textContent = (user.displayName || '用').charAt(0);
+                }
+                
+                const isAdmin = LocalStorageManager.checkAdmin(user.uid);
+                adminBtn.style.display = isAdmin ? 'flex' : 'none';
+            } else {
+                loginBtn.style.display = 'block';
+                userInfo.style.display = 'none';
+                adminBtn.style.display = 'none';
+            }
+        }
+        
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            window.location.href = 'login.html';
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            LocalStorageManager.logout();
+            updateUserUI();
+            showToast('已退出登录');
+        });
+        
+        document.getElementById('admin-btn').addEventListener('click', () => {
+            window.location.href = 'admin.html';
+        });
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(updateUserUI, 100);
+        });
+        
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'currentUser') {
+                updateUserUI();
+            }
+        });
+    </script>
+</body>
+</html>
